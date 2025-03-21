@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Форма обратной связи</title>
+        <style>
+            .error {
+                border: 2px solid red;
+            }
+            .success-message {
+                color: green;
+            }
+            .error-message {
+                color: red;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="feedback-container">
+            <form id="feedback-form">
+                <input
+                    type="text"
+                    id="fullName"
+                    placeholder="ФИО"
+                    required
+                /><br />
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="E-mail"
+                    required
+                /><br />
+                <input
+                    type="tel"
+                    id="phone"
+                    placeholder="Телефон"
+                    required
+                /><br />
+                <textarea
+                    id="comment"
+                    placeholder="Комментарий"
+                    required
+                ></textarea
+                ><br />
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
