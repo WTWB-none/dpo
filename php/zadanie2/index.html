@@ -1,50 +1,341 @@
-<!doctype html>
-<html>
-    <head>
-        <title>Форма обратной связи</title>
-        <style>
-            .error {
-                border: 2px solid red;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма обратной связи</title>
+    <style>
+        :root {
+            --primary-color: #4a6de5;
+            --primary-hover: #3555c9;
+            --error-color: #e74c3c;
+            --text-color: #333;
+            --light-gray: #f5f7fa;
+            --border-color: #ddd;
+            --success-color: #2ecc71;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #formContainer {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 109, 229, 0.1);
+        }
+        
+        .form-control.error {
+            border-color: var(--error-color);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .response-message {
+            background-color: var(--light-gray);
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.8;
+        }
+        
+        .success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .error-message {
+            border-left: 4px solid var(--error-color);
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #formContainer {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Responsive */
+        @media screen and (max-width: 600px) {
+            #formContainer {
+                padding: 20px;
             }
-            .success-message {
-                color: green;
+            
+            .form-control, .btn {
+                padding: 12px;
             }
-            .error-message {
-                color: red;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="feedback-container">
-            <form id="feedback-form">
-                <input
-                    type="text"
-                    id="fullName"
-                    placeholder="ФИО"
-                    required
-                /><br />
-                <input
-                    type="email"
-                    id="email"
-                    placeholder="E-mail"
-                    required
-                /><br />
-                <input
-                    type="tel"
-                    id="phone"
-                    placeholder="Телефон"
-                    required
-                /><br />
-                <textarea
-                    id="comment"
-                    placeholder="Комментарий"
-                    required
-                ></textarea
-                ><br />
-                <button type="submit">Отправить</button>
-            </form>
-        </div>
+        }
+    </style>
+<script>
+function formatPhoneNumber(value) {
+    // Удаляем все нецифровые символы
+    let cleaned = value.replace(/\D/g, '');
+    
+    // Если начинается с 8, заменяем на 7
+    if (cleaned.startsWith('8')) {
+        cleaned = '7' + cleaned.slice(1);
+    }
+    
+    // Добавляем +7 если номер начинается с 7 или корректируем длину
+    if (cleaned.length > 0 && !cleaned.startsWith('7')) {
+        cleaned = '7' + cleaned;
+    }
+    
+    // Ограничиваем длину до 11 цифр
+    if (cleaned.length > 11) {
+        cleaned = cleaned.slice(0, 11);
+    }
+    
+    // Форматирование
+    let formatted = '+7';
+    if (cleaned.length > 1) {
+        formatted += ' (' + cleaned.slice(1, 4);
+    }
+    if (cleaned.length > 4) {
+        formatted += ') ' + cleaned.slice(4, 7);
+    }
+    if (cleaned.length > 7) {
+        formatted += '-' + cleaned.slice(7, 9);
+    }
+    if (cleaned.length > 9) {
+        formatted += '-' + cleaned.slice(9, 11);
+    }
+    
+    return formatted;
+}
 
-        <script src="script.js"></script>
-    </body>
+function validateForm() {
+    var fio = document.getElementById('fio');
+    var email = document.getElementById('email');
+    var phone = document.getElementById('phone');
+    var comment = document.getElementById('comment');
+    var isValid = true;
+
+    // Сброс предыдущих ошибок
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.classList.remove('error');
+    });
+
+    // Валидация ФИО
+    if (fio.value.trim() === "") {
+        fio.classList.add('error');
+        isValid = false;
+    }
+
+    // Валидация email
+    if (email.value.trim() === "" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+        email.classList.add('error');
+        isValid = false;
+    }
+
+    // Валидация телефона
+    let phoneValue = phone.value.replace(/\D/g, ''); // Удаляем все нецифровые символы
+    if (phoneValue.length !== 11 || !phoneValue.startsWith('7')) {
+        phone.classList.add('error');
+        isValid = false;
+    }
+
+    // Валидация комментария
+    if (comment.value.trim() === "") {
+        comment.classList.add('error');
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function submitForm() {
+    if (!validateForm()) {
+        return false;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Отправка...';
+
+    // Форматируем номер телефона перед отправкой
+    let phoneInput = document.getElementById('phone');
+    let phoneValue = phoneInput.value.replace(/\D/g, ''); // Удаляем все нецифровые символы: +7 (999) 123-45-67 -> 79991234567
+    let formattedPhone = '+7' + phoneValue.slice(1); // Преобразуем в +79991234567
+    phoneInput.value = formattedPhone; // Устанавливаем отформатированный номер
+
+    // Отладочный вывод
+    console.log('Отправляемый номер телефона:', phoneInput.value);
+
+    var formData = new FormData(document.getElementById('feedbackForm'));
+
+    fetch('submit.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        const formContainer = document.getElementById('formContainer');
+
+        // Проверяем, содержит ли ответ ошибку
+        if (data.includes('Ошибка')) {
+            formContainer.innerHTML = `
+                <div class="response-message error-message">
+                    <h2>Произошла ошибка</h2>
+                    <p>${data}</p>
+                    <button class="btn" onclick="location.reload()" style="margin-top: 20px;">Вернуться к форме</button>
+                </div>
+            `;
+        } else {
+            formContainer.innerHTML = `
+                <div class="response-message success">
+                    <h2>Спасибо за обращение!</h2>
+                    <p>${data}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('formContainer').innerHTML = `
+            <div class="response-message error-message">
+                <h2>Произошла ошибка</h2>
+                <p>Не удалось отправить форму. Пожалуйста, попробуйте позже.</p>
+                <button class="btn" onclick="location.reload()" style="margin-top: 20px;">Вернуться к форме</button>
+            </div>
+        `;
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Отправить';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const phoneInput = document.getElementById('phone');
+
+    phoneInput.addEventListener('input', function (e) {
+        e.target.value = formatPhoneNumber(e.target.value);
+    });
+
+    // Предотвращаем ввод букв и ограничиваем длину
+    phoneInput.addEventListener('keydown', function (e) {
+        const allowedKeys = [
+            'Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab'
+        ];
+        if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+</head>
+<body>
+    <div id="formContainer">
+        <h2>Обратная связь</h2>
+        <form id="feedbackForm" onsubmit="event.preventDefault(); submitForm();">
+            <div class="form-group">
+                <label for="fio">ФИО</label>
+                <input type="text" id="fio" name="fio" class="form-control" placeholder="Введите ваше полное имя">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="example@mail.ru">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="text" id="phone" name="phone" class="form-control" placeholder="+7 (999) 123-45-67">
+            </div>
+
+            <div class="form-group">
+                <label for="comment">Комментарий</label>
+                <textarea id="comment" name="comment" class="form-control" placeholder="Введите ваше сообщение"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn">Отправить</button>
+        </form>
+    </div>
+</body>
 </html>
