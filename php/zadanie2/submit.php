@@ -1,5 +1,4 @@
-<?php
-require 'vendor/autoload.php';
+<?php require 'vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 $host = $_SERVER["DB_HOST"];
@@ -103,4 +102,4 @@ try {
 
 // Закрытие соединения с базой данных
 $conn = null;
-?>
+

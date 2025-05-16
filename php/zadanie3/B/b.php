@@ -1,20 +1,35 @@
 <?php
+
+/**
+ * Merges sections and products XML files into a single catalog XML structure.
+ *
+ * Combines sections and their associated products based on section IDs, producing
+ * a formatted XML output with sections and their corresponding products.
+ *
+ * @param string $sectionsXmlPath Path to the sections XML file
+ * @param string $productsXmlPath Path to the products XML file
+ * @return string Formatted XML string containing merged catalog data
+ */
 function mergeCatalog($sectionsXmlPath, $productsXmlPath)
 {
     $sectionsXml = simplexml_load_file($sectionsXmlPath);
     $productsXml = simplexml_load_file($productsXmlPath);
 
+    // Initialize output XML structure
     $outputXml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><ЭлементыКаталога><Разделы></Разделы></ЭлементыКаталога>');
 
+    // Iterate through each section
     foreach ($sectionsXml->Раздел as $section) {
         $sectionId = (string) $section->Ид;
 
+        // Add section to output XML
         $outputSection = $outputXml->Разделы->addChild('Раздел');
         $outputSection->addChild('Ид', $sectionId);
         $outputSection->addChild('Наименование', (string) $section->Наименование);
 
         $outputProducts = $outputSection->addChild('Товары');
 
+        // Check and process products for the current section
         if (isset($productsXml->Товар)) {
             foreach ($productsXml->Товар as $product) {
                 $belongsToSection = false;
@@ -27,6 +42,7 @@ function mergeCatalog($sectionsXmlPath, $productsXmlPath)
                     }
                 }
 
+                // Add matching products to the section
                 if ($belongsToSection) {
                     $outputProduct = $outputProducts->addChild('Товар');
                     $outputProduct->addChild('Ид', (string) $product->Ид);
@@ -37,6 +53,7 @@ function mergeCatalog($sectionsXmlPath, $productsXmlPath)
         }
     }
 
+    // Format XML output using DOMDocument
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->preserveWhiteSpace = false;
     $dom->formatOutput = true;
@@ -45,15 +62,26 @@ function mergeCatalog($sectionsXmlPath, $productsXmlPath)
     return $dom->saveXML();
 }
 
+/**
+ * Executes test cases to validate the mergeCatalog function.
+ *
+ * Scans the test directory for section and product XML files, runs mergeCatalog,
+ * and compares results against expected outputs. Reports test results and saves
+ * failing outputs for inspection.
+ *
+ * @return bool True if all tests pass, false otherwise
+ */
 function runTests()
 {
     $testDir = './test';
 
+    // Validate test directory
     if (!is_dir($testDir)) {
         echo "Error: Test directory '$testDir' not found\n";
         return false;
     }
 
+    // Collect section XML files
     $sectionFiles = glob("$testDir/*_sections.xml");
 
     if (empty($sectionFiles)) {
@@ -61,6 +89,7 @@ function runTests()
         return false;
     }
 
+    // Extract test case numbers
     $testCases = [];
     foreach ($sectionFiles as $file) {
         preg_match('/(\d+)_sections\.xml$/', $file, $matches);
@@ -74,11 +103,13 @@ function runTests()
 
     $allTestsPassed = true;
 
+    // Run each test case
     foreach ($testCases as $testNum) {
         $sectionsXmlPath = "$testDir/{$testNum}_sections.xml";
         $productsXmlPath = "$testDir/{$testNum}_products.xml";
         $expectedOutputPath = "$testDir/{$testNum}_result.xml";
 
+        // Skip tests with missing files
         if (!file_exists($sectionsXmlPath)) {
             echo "Test $testNum: SKIPPED - Missing sections file\n";
             continue;
@@ -94,6 +125,7 @@ function runTests()
             continue;
         }
 
+        // Run merge and compare results
         $actualOutput = mergeCatalog($sectionsXmlPath, $productsXmlPath);
         $expectedOutput = file_get_contents($expectedOutputPath);
 
@@ -106,9 +138,11 @@ function runTests()
             echo "Test $testNum: FAILED\n";
             $allTestsPassed = false;
 
+            // Save actual output for debugging
             file_put_contents("output_$testNum.xml", $actualOutput);
             echo "Output saved to output_$testNum.xml for inspection\n";
 
+            // Show differences (truncated for brevity)
             $diffLimit = 200;
             $diff = substr(diff($normalizedExpected, $normalizedActual), 0, $diffLimit);
             if (strlen($diff) >= $diffLimit) {
@@ -118,6 +152,7 @@ function runTests()
         }
     }
 
+    // Summarize test results
     if ($allTestsPassed) {
         echo "All tests passed!\n";
     } else {
@@ -127,16 +162,34 @@ function runTests()
     return $allTestsPassed;
 }
 
+/**
+ * Normalizes XML string by removing XML declaration and excess whitespace.
+ *
+ * Prepares XML strings for comparison by standardizing formatting, removing
+ * the XML declaration, and collapsing multiple spaces.
+ *
+ * @param string $xml Input XML string
+ * @return string Normalized XML string
+ */
 function normalizeXml($xml)
 {
     $xml = preg_replace('/<\?xml[^>]+\?>/', '', $xml);
-
     $xml = preg_replace('/\s+/', ' ', $xml);
     $xml = trim($xml);
 
     return $xml;
 }
 
+/**
+ * Compares two strings and generates a diff report.
+ *
+ * Identifies character-level differences between two strings, including position
+ * and mismatched characters, and reports length mismatches.
+ *
+ * @param string $str1 Expected string
+ * @param string $str2 Actual string
+ * @return string Diff report detailing mismatches
+ */
 function diff($str1, $str2)
 {
     $str1 = str_split($str1);
@@ -159,6 +212,12 @@ function diff($str1, $str2)
     return $result;
 }
 
+/**
+ * Handles command-line execution for merging XML files.
+ *
+ * If run with 'run' argument, merges sections.xml and products.xml and saves
+ * the result to output.xml.
+ */
 if (count($argv) > 1 && $argv[1] === 'run') {
     $output = mergeCatalog('sections.xml', 'products.xml');
     file_put_contents('output.xml', $output);
@@ -166,4 +225,3 @@ if (count($argv) > 1 && $argv[1] === 'run') {
 } else {
     runTests();
 }
-?>

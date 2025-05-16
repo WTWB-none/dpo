@@ -1,86 +1,119 @@
 <?php
-function calculateFlightTime($input)
+
+/**
+ * Calculates flight duration in seconds between two locations considering their timezones.
+ * 
+ * @param string $input Input string containing the number of test cases and flight details
+ *                     in the format: number of cases, followed by lines of 
+ *                     "departure_time departure_timezone arrival_time arrival_timezone"
+ * @return string Flight durations in seconds, one per line, separated by newlines
+ */
+function calculateflighttime($input)
 {
+    // Split input into lines and extract number of test cases
     $lines = explode("\n", trim($input));
     $n = (int) $lines[0];
-
     $results = [];
+
+    // Process each test case
     for ($i = 0; $i < $n; $i++) {
+        // Parse flight details: departure time, departure timezone, arrival time, arrival timezone
         $line = trim($lines[$i + 1]);
-        list($departureTime, $departureTimezone, $arrivalTime, $arrivalTimezone) = explode(' ', $line);
+        list($departuretime, $departuretimezone, $arrivaltime, $arrivaltimezone) = explode(' ', $line);
 
-        $departureDt = DateTime::createFromFormat('d.m.Y_H:i:s', $departureTime);
-        $departureUtc = clone $departureDt;
-        $departureUtc->modify((-1 * (int) $departureTimezone) . " hours");
+        // Create DateTime objects for departure and convert to UTC
+        $departuredt = DateTime::createFromFormat('d.m.y_H:i:s', $departuretime);
+        $departureutc = clone $departuredt;
+        $departureutc->modify((-1 * (int) $departuretimezone) . " hours");
 
-        $arrivalDt = DateTime::createFromFormat('d.m.Y_H:i:s', $arrivalTime);
-        $arrivalUtc = clone $arrivalDt;
-        $arrivalUtc->modify((-1 * (int) $arrivalTimezone) . " hours");
+        // Create DateTime objects for arrival and convert to UTC
+        $arrivaldt = DateTime::createFromFormat('d.m.y_H:i:s', $arrivaltime);
+        $arrivalutc = clone $arrivaldt;
+        $arrivalutc->modify((-1 * (int) $arrivaltimezone) . " hours");
 
-        $flightDuration = $arrivalUtc->getTimestamp() - $departureUtc->getTimestamp();
+        // Calculate flight duration in seconds
+        $flightduration = $arrivalutc->getTimestamp() - $departureutc->getTimestamp();
 
-        $results[] = $flightDuration;
+        $results[] = $flightduration;
     }
 
+    // Return durations as a newline-separated string
     return implode("\n", $results);
 }
 
-$datDir = "./test";
-$ansDir = "./test";
+// Validate test data and answer directories
+$datdir = "./test";
+$ansdir = "./test";
 
-if (!is_dir($datDir)) {
-    echo "Error: Test data directory '$datDir' not found\n";
+if (!is_dir($datdir)) {
+    echo "error: test data directory '$datdir' not found\n";
     exit(1);
 }
 
-if (!is_dir($ansDir)) {
-    echo "Error: Answer directory '$ansDir' not found\n";
+if (!is_dir($ansdir)) {
+    echo "error: answer directory '$ansdir' not found\n";
     exit(1);
 }
 
-$datFiles = glob("$datDir/*.dat");
+// Collect all .dat files for testing
+$datfiles = glob("$datdir/*.dat");
 
-if (empty($datFiles)) {
-    echo "No .dat files found in '$datDir'\n";
+if (empty($datfiles)) {
+    echo "no .dat files found in '$datdir'\n";
     exit(1);
 }
 
-echo "Running tests on " . count($datFiles) . " files...\n";
-$allTestsPassed = true;
+/**
+ * Runs test cases by comparing calculated flight times against expected outputs.
+ * 
+ * Iterates through .dat files, processes them using calculateflighttime, and compares
+ * results with corresponding .ans files. Reports pass/fail status for each test.
+ */
+echo "running tests on " . count($datfiles) . " files...\n";
+$alltestspassed = true;
 
-foreach ($datFiles as $datFile) {
-    $testNum = basename($datFile, '.dat');
-    $ansFile = "$ansDir/$testNum.ans";
+foreach ($datfiles as $datfile) {
+    $testnum = basename($datfile, '.dat');
+    $ansfile = "$ansdir/$testnum.ans";
 
-    if (!file_exists($ansFile)) {
-        echo "Warning: Answer file for test $testNum not found\n";
+    if (!file_exists($ansfile)) {
+        echo "warning: answer file for test $testnum not found\n";
         continue;
     }
 
-    $input = file_get_contents($datFile);
-    $expectedOutput = trim(file_get_contents($ansFile));
+    // Read input and expected output
+    $input = file_get_contents($datfile);
+    $expectedoutput = trim(file_get_contents($ansfile));
 
-    $actualOutput = calculateFlightTime($input);
-    echo $actualOutput;
+    // Calculate actual output
+    $actualoutput = calculateflighttime($input);
+    echo $actualoutput;
 
-    if ($actualOutput === $expectedOutput) {
-        echo "Test $testNum: PASSED\n";
+    // Compare results and report test status
+    if ($actualoutput === $expectedoutput) {
+        echo "test $testnum: passed\n";
     } else {
-        echo "Test $testNum: FAILED\n";
-        echo "Expected: $expectedOutput\n";
-        echo "Got:      $actualOutput\n";
-        $allTestsPassed = false;
+        echo "test $testnum: failed\n";
+        echo "expected: $expectedoutput\n";
+        echo "got:      $actualoutput\n";
+        $alltestspassed = false;
     }
 }
 
-if ($allTestsPassed) {
-    echo "All tests passed!\n";
+// Summarize test results
+if ($alltestspassed) {
+    echo "all tests passed!\n";
 } else {
-    echo "Some tests failed. Please check the output above.\n";
+    echo "some tests failed. please check the output above.\n";
 }
 
+/**
+ * Handles command-line execution mode for processing input from file or STDIN.
+ * 
+ * If run with 'run' argument, processes input from input.txt or STDIN and outputs
+ * the calculated flight times.
+ */
 if (count($argv) > 1 && $argv[1] === 'run') {
     $input = file_exists('input.txt') ? file_get_contents('input.txt') : stream_get_contents(STDIN);
-    echo calculateFlightTime($input);
+    echo calculateflighttime($input);
 }
-?>
