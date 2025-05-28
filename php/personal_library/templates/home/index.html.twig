@@ -1,0 +1,56 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Моя библиотека{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="my-4">Список книг</h1>
+
+        {% if app.user %}
+            <div class="mb-3">
+                <a href="{{ path('app_book_new') }}" class="btn btn-success">Добавить книгу</a>
+            </div>
+        {% endif %}
+
+        {% if books is not empty %}
+            <div class="row">
+                {% for book in books %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if book.coverPath %}
+                                <img src="{{ asset('uploads/covers/' ~ book.coverPath) }}" class="card-img-top" alt="{{ book.title }}" style="max-height: 200px; object-fit: cover;">
+                            {% else %}
+                                <img src="https://via.placeholder.com/300x200.png?text=Нет+обложки" class="card-img-top" alt="Нет обложки" style="max-height: 200px; object-fit: cover;">
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <p class="card-text"><strong>Автор:</strong> {{ book.author }}</p>
+                                <p class="card-text"><small class="text-muted">Прочитана: {{ book.readDate|date("d.m.Y") }}</small></p>
+                                
+                                <div class="mt-auto">
+                                    {% if book.allowDownload and book.filePath %}
+                                        <a href="{{ path('app_book_download', {'id': book.id}) }}" class="btn btn-sm btn-outline-primary">Скачать</a>
+                                    {% endif %}
+
+                                    {% if app.user and (app.user == book.user or is_granted('ROLE_ADMIN')) %}
+                                        <a href="{{ path('app_book_edit', {'id': book.id}) }}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
+                                        <form method="post" action="{{ path('app_book_delete', {'id': book.id}) }}" style="display: inline-block;" onsubmit="return confirm('Вы уверены, что хотите удалить эту книгу?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ book.id) }}">
+                                            <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>В библиотеке пока нет книг.</p>
+            {% if not app.user %}
+                <p><a href="{{ path('app_login') }}">Войдите</a> или <a href="{{ path('app_register') }}">зарегистрируйтесь</a>, чтобы добавлять книги.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
+

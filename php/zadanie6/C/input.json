@@ -1,0 +1,7 @@
+{
+"select": ["first", "second", "third", "fourth", "fifth", "sixth"],
+"from": "test_table",
+"where": {"<first": 10, "=second": 10, "or_1": {"third": "val", "<=fourth": 20, "and_2": {">fifth": 30, "!sixth": 40}}},
+"order": {"first": "asc"},
+"limit": 10
+}

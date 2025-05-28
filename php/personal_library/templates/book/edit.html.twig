@@ -1,0 +1,68 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Редактировать книгу: {{ book.title }}{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="my-4">Редактировать книгу: {{ book.title }}</h1>
+
+        {{ form_start(form) }}
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        {{ form_row(form.title) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.author) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.readDate) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.coverFile) }}
+                        {% if book.coverPath %}
+                            <p class="mt-2">
+                                Текущая обложка: <img src="{{ asset("uploads/covers/" ~ book.coverPath) }}" alt="{{ book.title }}" style="max-width: 100px; max-height: 100px;">
+                                {% if form.deleteCoverFile is defined %}
+                                    <div class="form-check mt-1">
+                                        {{ form_widget(form.deleteCoverFile) }}
+                                        {{ form_label(form.deleteCoverFile) }}
+                                    </div>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                        {{ form_widget(form.coverFile) }}
+                        {{ form_errors(form.coverFile) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.bookFile) }}
+                        {% if book.filePath %}
+                            <p class="mt-2">
+                                Текущий файл: {{ book.originalFilename }} ({{ book.filePath|split("/")|last }})
+                                {% if form.deleteBookFile is defined %}
+                                    <div class="form-check mt-1">
+                                        {{ form_widget(form.deleteBookFile) }}
+                                        {{ form_label(form.deleteBookFile) }}
+                                    </div>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                        {{ form_widget(form.bookFile) }}
+                        {{ form_errors(form.bookFile) }}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form_widget(form.allowDownload) }}
+                        {{ form_label(form.allowDownload) }}
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary mt-3">{{ button_label|default("Сохранить изменения") }}</button>
+            <a href="{{ path("app_home") }}" class="btn btn-secondary mt-3">Отмена</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+

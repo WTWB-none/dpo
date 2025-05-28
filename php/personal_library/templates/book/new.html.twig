@@ -1,0 +1,39 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Добавить новую книгу{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="my-4">Добавить новую книгу</h1>
+
+        {{ form_start(form) }}
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        {{ form_row(form.title) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.author) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.readDate) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.coverFile) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.bookFile) }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form_widget(form.allowDownload) }}
+                        {{ form_label(form.allowDownload) }}
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary mt-3">{{ button_label|default("Сохранить") }}</button>
+            <a href="{{ path("app_home") }}" class="btn btn-secondary mt-3">Отмена</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
