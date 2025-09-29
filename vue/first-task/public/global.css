@@ -1,0 +1,15 @@
+body{
+  width: 100%;
+  background-color: #232136;
+  overflow-x: hidden;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
